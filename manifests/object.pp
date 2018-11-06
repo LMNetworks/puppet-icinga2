@@ -77,7 +77,8 @@ define icinga2::object(
   $attrs        = {},
 ) {
 
-  assert_private()
+  # commented as a temporary hack for https://github.com/Icinga/puppet-icinga2/issues/395
+  #assert_private()
 
   include ::icinga2::params
 
