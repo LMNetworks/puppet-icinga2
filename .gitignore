@@ -13,7 +13,5 @@ pkg/
 ## ruby
 Gemfile.lock
 /.ruby-*
-.bundle
 .vendor/
-vendor/
 log/

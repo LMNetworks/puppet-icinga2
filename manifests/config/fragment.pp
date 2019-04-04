@@ -12,41 +12,29 @@
 #   first time.
 #
 # [*order*]
-#   String to set the position in the target file, sorted in alpha numeric order.
+#   String or integer to set the position in the target file, sorted in alpha numeric order. Defaults to `00`.
 #
 #
 define icinga2::config::fragment(
-  $content,
-  $target,
-  $code_name = $title,
-  $order     = '0',
+  String                       $content,
+  Stdlib::Absolutepath         $target,
+  String                       $code_name = $title,
+  Variant[String, Integer]     $order     = '00',
 ) {
-
-  include ::icinga2::params
-  require ::icinga2::config
 
   case $::osfamily {
     'windows': {
-      Concat {
-        owner => 'Administrators',
-        group => 'NETWORK SERVICE',
-        mode  => '0770',
-      }
       $_content = regsubst($content, '\n', "\r\n", 'EMG')
     } # windows
     default: {
       Concat {
-        owner => $::icinga2::params::user,
-        group => $::icinga2::params::group,
+        owner => $::icinga2::globals::user,
+        group => $::icinga2::globals::group,
         mode  => '0640',
       }
       $_content = $content
     } # default
   }
-
-  validate_string($content)
-  validate_absolute_path($target)
-  validate_string($order)
 
   if !defined(Concat[$target]) {
     concat { $target:
@@ -60,7 +48,6 @@ define icinga2::config::fragment(
     target  => $target,
     content => $_content,
     order   => $order,
-    notify  => Class['::icinga2::service'],
   }
 
 }

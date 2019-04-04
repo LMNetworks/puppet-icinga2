@@ -2,7 +2,7 @@ require File.join(File.dirname(__FILE__), '../../..', 'puppet_x/icinga2/utils.rb
 
 module Puppet::Parser::Functions
   newfunction(:icinga2_attributes, :type => :rvalue) do |args|
-    raise Puppet::ParseError, 'Must provide at least one argument.' if args.length > 4
+    raise Puppet::ParseError, 'icinga2_atributes(): Must provide at least one argument.' if args.length > 4 || args.length < 1
 
     if args[1]
       indent = args[1]
@@ -11,9 +11,9 @@ module Puppet::Parser::Functions
     end
 
     if args[2]
-      globals = args[2].concat(lookupvar('::icinga2::params::globals'))
+      globals = args[2].concat(lookupvar('::icinga2::_reserved'))
     else
-      globals = lookupvar('::icinga2::params::globals')
+      globals = lookupvar('::icinga2::_reserved')
     end
 
     if args[3]

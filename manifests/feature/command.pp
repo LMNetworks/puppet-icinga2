@@ -13,23 +13,19 @@
 #
 #
 class icinga2::feature::command(
-  $ensure       = present,
-  $command_path = "${::icinga2::params::run_dir}/cmd/icinga2.cmd",
+  Enum['absent', 'present']         $ensure       = present,
+  Optional[Stdlib::Absolutepath]    $command_path =  undef,
 ) {
 
   if ! defined(Class['::icinga2']) {
     fail('You must include the icinga2 base class before using any icinga2 feature class!')
   }
 
-  $conf_dir = $::icinga2::params::conf_dir
+  $conf_dir = $::icinga2::globals::conf_dir
   $_notify  = $ensure ? {
     'present' => Class['::icinga2::service'],
     default   => undef,
   }
-
-  validate_re($ensure, [ '^present$', '^absent$' ],
-    "${ensure} isn't supported. Valid values are 'present' and 'absent'.")
-  validate_absolute_path($command_path)
 
   # compose attributes
   $attrs = {
@@ -43,7 +39,7 @@ class icinga2::feature::command(
     attrs       => delete_undef_values($attrs),
     attrs_list  => keys($attrs),
     target      => "${conf_dir}/features-available/command.conf",
-    order       => '10',
+    order       => 10,
     notify      => $_notify,
   }
 

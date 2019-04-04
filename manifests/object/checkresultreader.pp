@@ -18,28 +18,16 @@
 #   first time.
 #
 # [*order*]
-#   String to set the position in the target file, sorted alpha numeric. Defaults to 30.
+#   String or integer to set the position in the target file, sorted alpha numeric. Defaults to 10.
 #
 #
 define icinga2::object::checkresultreader (
-  $target,
-  $ensure                 = present,
-  $checkresultreader_name = $title,
-  $spool_dir              = undef,
-  $order                  = '10',
+  Stdlib::Absolutepath               $target,
+  Enum['absent', 'present']          $ensure                 = present,
+  String                             $checkresultreader_name = $title,
+  Optional[Stdlib::Absolutepath]     $spool_dir              = undef,
+  Variant[String, Integer]           $order                  = '05',
 ){
-  include ::icinga2::params
-
-  $conf_dir = $::icinga2::params::conf_dir
-
-  # validation
-  validate_re($ensure, [ '^present$', '^absent$' ],
-    "${ensure} isn't supported. Valid values are 'present' and 'absent'.")
-  validate_string($checkresultreader_name)
-  validate_absolute_path($target)
-  validate_string($order)
-
-  if $spool_dir { validate_absolute_path($spool_dir) }
 
   # compose the attributes
   $attrs = {
@@ -55,13 +43,12 @@ define icinga2::object::checkresultreader (
     attrs_list  => keys($attrs),
     target      => $target,
     order       => $order,
-    notify      => Class['::icinga2::service'],
   }
 
   # import library
   concat::fragment { "icinga2::object::CheckResultReader::${title}-library":
     target  => $target,
     content => "library \"compat\"\n\n",
-    order   => '05',
+    order   => $order,
   }
 }

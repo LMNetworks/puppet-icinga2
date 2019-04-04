@@ -4,18 +4,15 @@
 #
 #
 define icinga2::feature(
-  $ensure  = present,
-  $feature = $title,
+  Enum['absent', 'present'] $ensure  = present,
+  String                    $feature = $title,
 ) {
 
   assert_private()
 
-  validate_re($ensure, [ '^present$', '^absent$' ],
-    "${ensure} isn't supported. Valid values are 'present' and 'absent'.")
-
-  $user     = $::icinga2::params::user
-  $group    = $::icinga2::params::group
-  $conf_dir = $::icinga2::params::conf_dir
+  $user     = $::icinga2::globals::user
+  $group    = $::icinga2::globals::group
+  $conf_dir = $::icinga2::globals::conf_dir
 
   if $::osfamily != 'windows' {
     $_ensure = $ensure ? {

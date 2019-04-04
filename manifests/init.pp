@@ -41,10 +41,6 @@
 #   own directory. This directory must be managed outside of this module as file resource
 #   with tag icinga2::config::file.
 #
-# [*repositoryd*]
-#   `repository.d` is removed since Icinga 2 2.8.0, set to true (default) will handle the directory.
-#   This Parameter will change to false by default in v2.0.0 and will be removed in the future.
-#
 # All default parameters are set in the icinga2::params class. To get more technical information have a look into the
 # params.pp manifest.
 #
@@ -141,59 +137,51 @@
 #   }
 #
 #
-class icinga2(
-  $ensure         = running,
-  $enable         = true,
-  $manage_repo    = false,
-  $manage_package = true,
-  $manage_service = true,
-  $features       = $icinga2::params::default_features,
-  $purge_features = true,
-  $constants      = {},
-  $plugins        = $icinga2::params::plugins,
-  $confd          = true,
-  $repositoryd    = true,
-) inherits ::icinga2::params {
+class icinga2 (
+  Array                      $features,
+  Array                      $plugins,
+  Stdlib::Ensure::Service    $ensure         = running,
+  Boolean                    $enable         = true,
+  Boolean                    $manage_repo    = false,
+  Boolean                    $manage_package = true,
+  Boolean                    $manage_service = true,
+  Boolean                    $purge_features = true,
+  Hash                       $constants      = {},
+  Variant[Boolean, String]   $confd          = true,
+) {
 
-  validate_re($ensure, [ '^running$', '^stopped$' ],
-    "${ensure} isn't supported. Valid values are 'running' and 'stopped'.")
-  validate_bool($enable)
-  validate_bool($manage_repo)
-  validate_bool($manage_package)
-  validate_bool($manage_service)
-  validate_array($features)
-  validate_bool($purge_features)
-  validate_hash($constants)
-  validate_array($plugins)
-  validate_bool($repositoryd)
+  require ::icinga2::globals
 
-  # validate confd, boolean or string
-  if is_bool($confd) {
-    if $confd { $_confd = 'conf.d' } else { $_confd = undef }
-  } elsif is_string($confd) {
-    $_confd = $confd
-  } else {
-    fail('confd has to be a boolean or string')
-  }
+  # load reserved words
+  $_reserved = $::icinga2::globals::reserved
 
   # merge constants with defaults
-  $_constants = merge($::icinga2::params::constants, $constants)
+  $_constants = merge($::icinga2::globals::constants, $constants)
+
+  # validate confd, boolean or string
+  if $confd =~ Boolean {
+    if $confd { $_confd = 'conf.d' } else { $_confd = undef }
+  } else {
+    $_confd = $confd
+  }
 
   Class['::icinga2::config']
   -> Concat <| tag == 'icinga2::config::file' |>
   ~> Class['::icinga2::service']
 
+  # Put ::icinga2::repo outside to work around dependency cycle issues with the apt module
+  include '::icinga2::repo'
+
   anchor { '::icinga2::begin':
-    notify => Class['::icinga2::service']
+    notify => Class['::icinga2::service'],
   }
-  -> class { '::icinga2::repo': }
   -> class { '::icinga2::install': }
   -> File <| ensure == 'directory' and tag == 'icinga2::config::file' |>
   -> class { '::icinga2::config': notify => Class['::icinga2::service'] }
   -> File <| ensure != 'directory' and tag == 'icinga2::config::file' |>
   ~> class { '::icinga2::service': }
   -> anchor { '::icinga2::end':
-    subscribe => Class['::icinga2::config']
+    subscribe => Class['::icinga2::config'],
   }
 
   include prefix($features, '::icinga2::feature::')
