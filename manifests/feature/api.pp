@@ -130,7 +130,11 @@
 class icinga2::feature::api(
   Enum['absent', 'present']                               $ensure                           = present,
   Enum['ca', 'icinga2', 'none', 'puppet']                 $pki                              = 'icinga2',
-  Optional[Stdlib::Absolutepath]                          $ssl_crl                          = undef,
+  Optional[Stdlib::Absolutepath]                          $ssl_key_path                     = undef,
+  Optional[Stdlib::Absolutepath]                          $ssl_cert_path                    = undef,
+  Optional[Stdlib::Absolutepath]                          $ssl_csr_path                     = undef,
+  Optional[Stdlib::Absolutepath]                          $ssl_cacert_path                  = undef,
+  Optional[Stdlib::Absolutepath]                          $ssl_crl_path                     = undef,
   Optional[Boolean]                                       $accept_config                    = undef,
   Optional[Boolean]                                       $accept_commands                  = undef,
   Optional[Stdlib::Host]                                  $ca_host                          = undef,
@@ -161,6 +165,7 @@ class icinga2::feature::api(
 
   $icinga2_bin   = $::icinga2::globals::icinga2_bin
   $conf_dir      = $::icinga2::globals::conf_dir
+  $pki_dir       = $::icinga2::globals::pki_dir
   $cert_dir      = $::icinga2::globals::cert_dir
   $ca_dir        = $::icinga2::globals::ca_dir
   $user          = $::icinga2::globals::user
@@ -181,10 +186,22 @@ class icinga2::feature::api(
   }
 
   # Set defaults for certificate stuff
-  $_ssl_key_path    = "${cert_dir}/${node_name}.key"
-  $_ssl_cert_path   = "${cert_dir}/${node_name}.crt"
-  $_ssl_csr_path    = "${cert_dir}/${node_name}.csr"
-  $_ssl_cacert_path = "${cert_dir}/ca.crt"
+  if $ssl_key_path {
+    $_ssl_key_path = $ssl_key_path }
+  else {
+    $_ssl_key_path = "${pki_dir}/${node_name}.key" }
+  if $ssl_cert_path {
+    $_ssl_cert_path = $ssl_cert_path }
+  else {
+    $_ssl_cert_path = "${pki_dir}/${node_name}.crt" }
+  if $ssl_csr_path {
+    $_ssl_csr_path = $ssl_csr_path }
+  else {
+    $_ssl_csr_path = "${pki_dir}/${node_name}.csr" }
+  if $ssl_cacert_path {
+    $_ssl_cacert_path = $ssl_cacert_path }
+  else {
+    $_ssl_cacert_path = "${pki_dir}/ca.crt" }
 
   # handle the certificate's stuff
   case $pki {
@@ -291,7 +308,10 @@ class icinga2::feature::api(
 
   # compose attributes
   $attrs = {
-    crl_path                         => $ssl_crl,
+    cert_path                        => $_ssl_cert_path,
+    key_path                         => $_ssl_key_path,
+    ca_path                          => $_ssl_cacert_path,
+    crl_path                         => $ssl_crl_path,
     accept_commands                  => $accept_commands,
     accept_config                    => $accept_config,
     ticket_salt                      => $_ticket_salt,
