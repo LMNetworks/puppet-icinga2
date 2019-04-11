@@ -90,6 +90,7 @@ class icinga2::globals(
   String                 $ido_pgsql_schema,
   Stdlib::Absolutepath   $icinga2_bin,
   Stdlib::Absolutepath   $conf_dir,
+  Stdlib::Absolutepath   $pki_dir,
   Stdlib::Absolutepath   $lib_dir,
   Stdlib::Absolutepath   $log_dir,
   Stdlib::Absolutepath   $run_dir,
