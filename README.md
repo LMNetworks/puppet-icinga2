@@ -1,5 +1,9 @@
 [![Build Status](https://travis-ci.org/Icinga/puppet-icinga2.svg?branch=master)](https://travis-ci.org/Icinga/puppet-icinga2)
 
+# fork warning!!!
+
+This is a third party fork of the [official Icinga2 puppet module](https://forge.puppet.com/icinga/icinga2) with specific customizations done in some git branches. Please review every commit before using this code.
+
 # Icinga 2 Puppet Module
 
 ![Icinga Logo](https://www.icinga.com/wp-content/uploads/2014/06/icinga_logo.png)
